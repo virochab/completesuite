@@ -38,22 +38,12 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '30'))
         timeout(time: 4, unit: 'HOURS')
         timestamps()
-        ansiColor('xterm')
     }
     
-    // Scheduled triggers - uncomment to enable automatic runs
+    // Scheduled triggers - configure in Jenkins UI:
+    // Job Configuration → Build Triggers → Build periodically
     // Daily sanity: H 2 * * * (runs daily at 2 AM)
     // Weekly comprehensive: H 3 * * 0 (runs Sunday at 3 AM)
-    // 
-    // Note: You can also configure these in Jenkins UI:
-    // Job Configuration → Build Triggers → Build periodically
-    properties([
-        pipelineTriggers([
-            // Uncomment the lines below to enable scheduled runs
-            // cron('H 2 * * *'),  // Daily sanity at 2 AM
-            // cron('H 3 * * 0')   // Weekly comprehensive on Sunday at 3 AM
-        ])
-    ])
     
     environment {
         PYTHON_VERSION = '3.11'
@@ -169,7 +159,7 @@ pipeline {
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResultsPattern: 'evidence/junit-*.xml'
+                    junit allowEmptyResults: true, testResults: 'junit-*.xml'
                 }
             }
         }
@@ -475,7 +465,7 @@ def getTestCommand(testType) {
     // Agentic tests - run only test_multiple_agentic_metrics.py
     commands['agentic'] = '''
         echo Running agentic tests...
-        pytest -v --tb=short tests/agentic/component/test_multiple_agentic_metrics.py --junitxml=evidence/junit-agentic.xml || echo Tests completed
+        pytest -v --tb=short tests/agentic/component/test_multiple_agentic_metrics.py --junitxml=junit-agentic.xml || echo Tests completed
     '''
     
     // Multiturn tests
