@@ -81,7 +81,7 @@ pipeline {
                         )
                         call "${VENV_PATH}\\Scripts\\activate.bat"
                         pip install --upgrade pip setuptools wheel
-                        pip install -r requirements.txt
+                        pip install -r mainsuiterequirements.txt
                         echo Main environment setup complete
                     """
                     
