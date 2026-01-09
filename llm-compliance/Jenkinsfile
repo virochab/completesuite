@@ -5,6 +5,7 @@ pipeline {
         choice(
             name: 'TEST_TYPE',
             choices: [
+                'agentic',
                 'all',
                 'sanity',
                 'bias',
@@ -13,7 +14,6 @@ pipeline {
                 'security',
                 'safety',
                 'privacy',
-                'agentic',
                 'multiturn',
                 'mcp',
                 'ops',
@@ -62,6 +62,9 @@ pipeline {
         VENV_GISKARD_PATH = "${WORKSPACE}/.venv-giskard"
         REPORTS_DIR = "${WORKSPACE}/reports"
         EVIDENCE_DIR = "${WORKSPACE}/evidence"
+        // Note: API keys should be set in Jenkins UI, not hardcoded here
+        // For standard OpenAI: Set OPENAI_API_KEY in Jenkins environment variables
+        // For Azure OpenAI: Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, etc.
     }
     
     stages {

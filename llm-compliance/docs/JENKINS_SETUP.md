@@ -71,12 +71,36 @@ properties([
 
 Ensure these environment variables are set in Jenkins:
 
+#### For Standard OpenAI:
 - `OPENAI_API_KEY` - OpenAI API key for LLM tests
 - `PYTHON_VERSION` - Python version (default: 3.11)
 
-Set these in:
+#### For Azure OpenAI:
+If using Azure OpenAI instead of standard OpenAI, set these variables:
+
+- `AZURE_OPENAI_API_KEY` - Azure OpenAI API key
+- `AZURE_OPENAI_ENDPOINT` - Azure OpenAI endpoint URL (e.g., `https://your-resource.openai.azure.com/`)
+- `AZURE_OPENAI_API_VERSION` - API version (optional, e.g., `2024-02-15-preview`)
+- `AZURE_OPENAI_DEPLOYMENT_NAME` - Deployment name (optional, may be required for some models)
+
+**Note:** If using Azure OpenAI, you may also need to set `OPENAI_API_KEY` to the Azure key value and configure the base URL in your application code, as some libraries use `OPENAI_API_KEY` with a custom base URL for Azure.
+
+#### Setting Environment Variables:
+
+**Option 1: Global Environment Variables**
 - **Manage Jenkins** → **Configure System** → **Global properties** → **Environment variables**
-- Or in the pipeline job configuration → **Build Environment** → **Use secret text(s) or file(s)**
+- Add variables as key-value pairs
+
+**Option 2: Job-Level Environment Variables**
+- In pipeline job configuration → **Build Environment** → **Use secret text(s) or file(s)**
+- Add variables using Jenkins credentials binding
+
+**Option 3: Using Jenkins Credentials (Recommended for API Keys)**
+1. **Manage Jenkins** → **Credentials** → **System** → **Global credentials** → **Add Credentials**
+2. Select **Secret text**
+3. Enter your API key as the secret
+4. Set ID (e.g., `azure-openai-api-key`)
+5. In Jenkinsfile, use: `withCredentials([string(credentialsId: 'azure-openai-api-key', variable: 'AZURE_OPENAI_API_KEY')])`
 
 ### 5. Virtual Environments
 
