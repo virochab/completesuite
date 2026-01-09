@@ -1,0 +1,20 @@
+{
+    "rest": {
+      "RestGenerator": {
+        "name": "local-fastapi-llm",
+        "uri": "http://localhost:8000/query",
+        "method": "post",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "req_template_json_object": {
+          "question": "$INPUT",
+          "debug": false
+        },
+        "response_json": true,
+        "response_json_field": "$.answer",
+        "request_timeout": 300
+      }
+    }
+  }
+  

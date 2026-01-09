@@ -1,0 +1,5 @@
+{"id": "task_001", "query": "What's the weather like in New York?", "category": "weather_query", "expected_tool": "get_current_weather"}
+{"id": "task_002", "query": "Can you check the weather in Tokyo?", "category": "weather_query", "expected_tool": "get_current_weather"}
+{"id": "task_003", "query": "Tell me about the weather in London and Moscow", "category": "weather_query", "expected_tool": "get_current_weather"}
+{"id": "task_004", "query": "What's the current weather in Paris?", "category": "weather_query", "expected_tool": "get_current_weather"}
+

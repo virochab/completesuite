@@ -1,0 +1,21 @@
+# garak_pr.yaml
+# Goal: PR-gate subset (fast + deterministic-ish)
+
+run:
+  # Hard cap so PR gate stays fast
+  max_probes: 3
+  # Optional: if your garak build supports it, keep runs bounded
+  timeout: 600
+  # Soft cap on prompts per probe (may be ignored by some probes)
+  soft_probe_prompt_cap: 5
+  # Keep PR deterministic(ish)
+  generations: 1
+  temperature: 0
+  # Keep small to reduce cost/time + reduce chance of leaking long content
+  max_tokens: 400
+
+#
+# Keep detectors minimal for speed (optional; depends on your workflow)
+# If you don’t rely on detectors here, you can omit this block.
+#detectors:
+#  - refusal

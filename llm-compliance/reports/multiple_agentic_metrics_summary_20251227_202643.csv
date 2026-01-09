@@ -1,0 +1,5 @@
+metric,number_of_tests,mean,mean_threshold,status
+Task Completion,4,1.0,0.7,PASS
+Step Efficiency,4,0.9375,0.7,PASS
+Plan Adherence,4,1.0,0.7,PASS
+Plan Quality,4,1.0,0.7,PASS

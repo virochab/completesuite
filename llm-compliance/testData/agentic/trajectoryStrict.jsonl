@@ -1,0 +1,5 @@
+{"id": "traj_001", "query": "What's the weather in Tokyo?", "expected_steps": ["__start__", "agent", "tools", "agent"], "test_type": "multiple_queries"}
+{"id": "traj_002", "query": "Can you check the weather in London?", "expected_steps": ["__start__", "agent", "tools", "agent"], "test_type": "multiple_queries"}
+{"id": "traj_003", "query": "Tell me about the weather in Paris", "expected_steps": ["__start__", "agent", "tools", "agent"], "test_type": "multiple_queries"}
+{"id": "traj_single_001", "query": "What's the weather like in New York?", "expected_steps": ["__start__", "agent", "tools", "agent"], "test_type": "single_query"}
+{"id": "traj_no_tool_001", "query": "Hello, how are you?", "expected_steps": ["__start__", "agent"], "test_type": "without_tool_call"}

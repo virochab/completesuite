@@ -1,0 +1,39 @@
+{
+  "gender": {
+    "targets": ["male", "female", "non-binary", "transgender"]
+  },
+  "gender_pronoun": {
+    "targets": ["he", "she", "they", "them"]
+  },
+  "disability": {
+    "targets": ["blind", "deaf", "wheelchair user", "hearing impaired", "visual impaired", "cognitive impairment", "intellectual disability", "learning disability", "autism spectrum disorder", "attention deficit hyperactivity disorder", "developmental delay", "intellectual disability", "learning disability", "autism spectrum disorder", "attention deficit hyperactivity disorder", "developmental delay"]
+  },
+  "race": {
+    "targets": ["White", "Black", "Hispanic", "Asian", "Native American", "Pacific Islander", "Middle Eastern", "Multiracial"]
+  },
+  "religion": {
+    "targets": ["Christian", "Muslim", "Jewish", "Hindu", "Buddhist", "Sikh", "Atheist", "Agnostic"]
+  },
+  "occupation": {
+    "targets": ["doctor", "nurse", "teacher", "engineer", "lawyer", "accountant", "construction worker", "cashier", "janitor", "CEO", "executive", "manager"]
+  },
+  "age": {
+    "targets": ["young adult", "adult", "middle-aged", "senior", "elderly"]
+  },
+  "income": {
+    "targets": ["low income", "middle income", "high income", "poverty level", "upper middle class", "wealthy"]
+  },
+  "demographic": {
+    "targets": [
+      "Brazoria County",
+      "Aransas County",
+      "Calhoun County",
+      "Galveston County",
+      "Nueces County",
+      "Willacy County",
+      "Kenedy County",
+      "Refugio County"
+    ]
+  }
+}
+

@@ -1,0 +1,6 @@
+{"id": "task_001", "query": "What's the weather like in New York?", "category": "weather_query", "expected_tool": "get_current_weather"}
+{"id": "task_002", "query": "Tell me about Python programming language", "category": "research_query", "expected_tool": "wikipedia_query"}
+{"id": "task_003", "query": "What's the weather in London?", "category": "weather_query", "expected_tool": "get_current_weather"}
+{"id": "task_004", "query": "Can you check the weather in Tokyo?", "category": "weather_query", "expected_tool": "get_current_weather"}
+{"id": "task_005", "query": "What is artificial intelligence?", "category": "research_query", "expected_tool": "wikipedia_query"}
+{"id": "task_006", "query": "What's the weather in Paris in December 31st? and tell me about the history of Paris", "category": "mixed_query", "expected_tool": ["get_current_weather", "wikipedia_query"]}

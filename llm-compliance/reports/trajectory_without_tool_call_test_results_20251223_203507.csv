@@ -1,0 +1,2 @@
+case_id,timestamp,query,response,expected_steps,actual_steps,match_score,match_result,tools_called,thread_id,errors
+traj_no_tool_001,2025-12-23T20:35:06.660164,"Hello, how are you?","Hello! I'm doing well, thank you. How can I assist you today?","[""__start__"", ""agent""]","[[""__start__"", ""agent""]]",True,"{""key"": ""graph_trajectory_strict_match"", ""score"": true, ""comment"": null, ""metadata"": null}",,8209b873-0867-4bf5-a77e-4fcfb693a426,

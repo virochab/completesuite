@@ -1,0 +1,43 @@
+case_id,question,answer,ground_truth,source_file,contexts_count,contexts_preview,faithfulness_score,faithfulness_threshold,faithfulness_passed,answer_relevancy_score,answer_relevancy_threshold,answer_relevancy_passed,context_precision_score,context_precision_threshold,context_precision_passed,context_recall_score,context_recall_threshold,context_recall_passed,context_entity_recall_score,context_entity_recall_threshold,context_entity_recall_passed,answer_correctness_score,answer_correctness_threshold,answer_correctness_passed,overall_passed,metrics_passed,metrics_total,metrics_pass_rate,errors,timestamp
+case_1,,,,D:\llm\completeSuite\llm-compliance\ragData\eeev102.pdf,3,"23
+Journey of a River
+There are fascinating stories about me, many 
+from the Ramayana and the Puranas. I am called 
+Dakshina Ganga because I flow through southern 
+India and am regarded as sacred.
+In places like Nashik, near where I begin, people 
+come from all around to take a dip in my holy 
+waters, especially during events like the Godavari 
+Pushkaram.
+India has built its longest river bridge, the Bhupen Hazarika Setu, over the 
+Brahmaputra River. It is more than 9 kilometres long!
+The Life I",0.5333,0.85,False,0.9557,0.7,True,0.0,0.75,False,0.4,0.7,False,1.0,0.6,True,1.0,0.7,True,False,3,6,50.0,,2025-12-29T20:40:55.414003
+case_2,,,,D:\llm\completeSuite\llm-compliance\ragData\eeev102.pdf,2,"Our Wondrous World
+34
+Activity 7  
+Read the flood safety tips given in Activity 6 and organise 
+a role-play where you are the Sarpanch or Municipal 
+Corporator of your village or city.
+Discuss what actions you will take to —
+• prevent flooding 
+• prevent damage caused by flooding
+• keep elderly people and people with disability safe 
+• keep animals safe
+Have a Disaster Emergency Kit Ready
+Chapter 2.indd   34Chapter 2.indd   34 10-Jul-25   6:10:42 PM10-Jul-25   6:10:42 PM | 33
+Journey of a River
+",0.6,0.85,False,0.9479,0.7,True,1.0,0.75,True,1.0,0.7,True,0.1429,0.6,False,1.0,0.7,True,False,4,6,66.67,,2025-12-29T20:40:55.414003
+case_3,,,,D:\llm\completeSuite\llm-compliance\ragData\eeev102.pdf,3,"Journey of a River2
+Where I Begin, Where I Flow
+I have no feet, but I travel far, 
+Through fields and forests, under moon and star.
+I quench your thirst and help plants grow,
+From mountain to sea, I quietly flow.
+Who am I? 
+Yes! I am a river.
+I am Godavari. My journey begins high up in the 
+Western Ghats at Trimbakeshwar in Maharashtra.
+Although I start out as a stream, as I move  
+across the land, rainwater and other streams join 
+me, making me wider and stronger. The small 
+streams joining are",1.0,0.85,True,0.9138,0.7,True,0.5,0.75,False,1.0,0.7,True,0.8667,0.6,True,1.0,0.7,True,False,5,6,83.33,,2025-12-29T20:40:55.418292

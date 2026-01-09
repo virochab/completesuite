@@ -1,0 +1,10 @@
+{
+  "uri": "http://localhost:8000/query",
+  "name": "rag_api",
+  "method": "post",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "req_template": "{\"question\": \"$INPUT\", \"debug\": false}"
+}
+

@@ -1,0 +1,63 @@
+case_id,question,answer,ground_truth,source_file,contexts_count,contexts_preview,faithfulness_score,faithfulness_threshold,faithfulness_passed,answer_relevancy_score,answer_relevancy_threshold,answer_relevancy_passed,context_precision_score,context_precision_threshold,context_precision_passed,context_recall_score,context_recall_threshold,context_recall_passed,context_entity_recall_score,context_entity_recall_threshold,context_entity_recall_passed,answer_correctness_score,answer_correctness_threshold,answer_correctness_passed,overall_passed,metrics_passed,metrics_total,metrics_pass_rate,errors,timestamp
+case_1,How do the Godavari and Ganga rivers compare in terms of sacredness and regional significance?,"Both the Godavari and Ganga rivers are regarded as sacred in India, but they hold significance in different regions. The Ganga is the longest river in India and is considered the holiest river, especially in northern India, with major efforts like the Namami Gange programme dedicated to keeping it clean. The Godavari, known as the ""Dakshina Ganga"" or ""Ganga of the South,"" is the second longest river in India and is highly revered in southern India. People gather at places like Nashik to take a dip in its holy waters, especially during events like the Godavari Pushkaram. Thus, while both rivers are sacred, the Ganga is more significant in the north, and the Godavari holds similar importance in the south.","Both the Godavari and Ganga rivers are regarded as sacred in India, but they hold significance in different regions. The Ganga is the longest river in India and is considered the holiest river, especially in northern India, with major efforts like the Namami Gange programme dedicated to keeping it clean. The Godavari, known as the ""Dakshina Ganga"" or ""Ganga of the South,"" is the second longest river in India and is highly revered in southern India. People gather at places like Nashik to take a dip in its holy waters, especially during events like the Godavari Pushkaram. Thus, while both rivers are sacred, the Ganga is more significant in the north, and the Godavari holds similar importance in the south.",D:\llm\completeSuite\llm-compliance\ragData\eeev102.pdf,3,"23
+Journey of a River
+There are fascinating stories about me, many 
+from the Ramayana and the Puranas. I am called 
+Dakshina Ganga because I flow through southern 
+India and am regarded as sacred.
+In places like Nashik, near where I begin, people 
+come from all around to take a dip in my holy 
+waters, especially during events like the Godavari 
+Pushkaram.
+India has built its longest river bridge, the Bhupen Hazarika Setu, over the 
+Brahmaputra River. It is more than 9 kilometres long!
+The Life I",0.5714,0.85,False,0.9557,0.7,True,0.0,0.75,False,0.2,0.7,False,1.0,0.6,True,0.9464,0.7,True,False,3,6,50.0,,2025-12-29T21:18:18.345026
+case_2,"As Sarpanch/Corporator, what measures ensure flood prevention, elderly/animal safety, and disaster kit readiness?","As Sarpanch/Corporator, I will take the following measures:
+
+- **Flood Prevention:** Ensure proper drainage, use sandbags in flood-prone areas, and keep evacuation routes clear.
+- **Prevent Damage:** Disconnect electricity and gas before floods, and avoid contact with flood water.
+- **Elderly/Disabled Safety:** Prioritize their evacuation, keep them informed, and ensure they have necessary medicines in the emergency kit.
+- **Animal Safety:** Free cattle and lead animals to higher, safer ground.
+- **Disaster Kit Readiness:** Prepare emergency bags with food, medicines, flashlight, and other essentials for all households.","As Sarpanch/Corporator, I will take the following measures:
+
+- **Flood Prevention:** Ensure proper drainage, use sandbags in flood-prone areas, and keep evacuation routes clear.
+- **Prevent Damage:** Disconnect electricity and gas before floods, and avoid contact with flood water.
+- **Elderly/Disabled Safety:** Prioritize their evacuation, keep them informed, and ensure they have necessary medicines in the emergency kit.
+- **Animal Safety:** Free cattle and lead animals to higher, safer ground.
+- **Disaster Kit Readiness:** Prepare emergency bags with food, medicines, flashlight, and other essentials for all households.",D:\llm\completeSuite\llm-compliance\ragData\eeev102.pdf,2,"Our Wondrous World
+34
+Activity 7  
+Read the flood safety tips given in Activity 6 and organise 
+a role-play where you are the Sarpanch or Municipal 
+Corporator of your village or city.
+Discuss what actions you will take to —
+• prevent flooding 
+• prevent damage caused by flooding
+• keep elderly people and people with disability safe 
+• keep animals safe
+Have a Disaster Emergency Kit Ready
+Chapter 2.indd   34Chapter 2.indd   34 10-Jul-25   6:10:42 PM10-Jul-25   6:10:42 PM | 33
+Journey of a River
+",0.4444,0.85,False,0.9479,0.7,True,1.0,0.75,True,0.5,0.7,False,0.1429,0.6,False,1.0,0.7,True,False,3,6,50.0,,2025-12-29T21:18:18.345026
+case_3,"Describe the Godavari’s journey, its perennial nature, and its cultural and ecological significance, incl. festivals.","The Godavari River begins its journey in the Western Ghats at Trimbakeshwar in Maharashtra. Starting as a small stream, it is joined by rainwater and tributaries, becoming wider and stronger as it travels 1,465 kilometres to the Bay of Bengal. The Godavari is a perennial river, meaning it flows all year round, unlike seasonal rivers that flow only during the rainy season.
+
+Culturally, the Godavari is called Dakshina Ganga and is considered sacred, with many stories from the Ramayana and Puranas. Festivals like the Godavari Pushkaram attract people to its banks, especially in places like Nashik, to take a dip in its holy waters.
+
+Ecologically, the river supports rich forests and diverse wildlife, including tigers, barking deer, the Indian golden gecko, and red sandalwood trees. Its freshwater is vital for plants, animals, and people along its course. Efforts are being made to keep its water clean, highlighting its importance for both nature and communities.","The Godavari River begins its journey in the Western Ghats at Trimbakeshwar in Maharashtra. Starting as a small stream, it is joined by rainwater and tributaries, becoming wider and stronger as it travels 1,465 kilometres to the Bay of Bengal. The Godavari is a perennial river, meaning it flows all year round, unlike seasonal rivers that flow only during the rainy season.
+
+Culturally, the Godavari is called Dakshina Ganga and is considered sacred, with many stories from the Ramayana and Puranas. Festivals like the Godavari Pushkaram attract people to its banks, especially in places like Nashik, to take a dip in its holy waters.
+
+Ecologically, the river supports rich forests and diverse wildlife, including tigers, barking deer, the Indian golden gecko, and red sandalwood trees. Its freshwater is vital for plants, animals, and people along its course. Efforts are being made to keep its water clean, highlighting its importance for both nature and communities.",D:\llm\completeSuite\llm-compliance\ragData\eeev102.pdf,3,"Journey of a River2
+Where I Begin, Where I Flow
+I have no feet, but I travel far, 
+Through fields and forests, under moon and star.
+I quench your thirst and help plants grow,
+From mountain to sea, I quietly flow.
+Who am I? 
+Yes! I am a river.
+I am Godavari. My journey begins high up in the 
+Western Ghats at Trimbakeshwar in Maharashtra.
+Although I start out as a stream, as I move  
+across the land, rainwater and other streams join 
+me, making me wider and stronger. The small 
+streams joining are",1.0,0.85,True,0.8845,0.7,True,0.5,0.75,False,1.0,0.7,True,0.8667,0.6,True,1.0,0.7,True,False,5,6,83.33,,2025-12-29T21:18:18.346715

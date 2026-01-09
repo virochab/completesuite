@@ -1,0 +1,13 @@
+.venv/
+.pytest_cache/
+.DS_Store
+./llm-compliance/reports/
+./llm-compliance/tests/reports
+./llm-compliance/evidence/
+./llm-compliance/logs/
+./llm-compliance/screenshots/
+./llm-compliance/videos/
+./llm-compliance/screenshots/
+.venv-garak/
+.venv-giskard/
+.llm-compliance/.env

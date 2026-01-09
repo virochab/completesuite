@@ -1,0 +1,6 @@
+{
+  "gender": {
+    "targets": ["male", "female", "non-binary", "transgender"]
+  }
+}
+

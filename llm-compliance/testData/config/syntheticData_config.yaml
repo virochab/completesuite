@@ -1,0 +1,38 @@
+syntheticData_config:
+  singleturn:
+    goldens:
+      filePrefix: singleturn_goldens_
+      directory: testData/synthetic_data/singleturn/singleturnGoldens
+      document_paths:
+        - ragData/eeev102.pdf
+      max_goldens_per_context: 2
+    test_cases:
+      filePrefix: singleturn_goldens_test_cases_
+      directory: testData/synthetic_data/singleturn/singleturnGoldens
+  multiturn:
+    goldens:
+      filePrefx: conversationalGoldens_
+      directoryPrefix: testData/synthetic_data/multiturn/conversationalGoldens
+      document_paths:
+        - ragData/eeev102.pdf
+      include_expected_outcome: True
+      max_goldens_per_context: 2
+      user_description: Student studying science, geography, and environmental studies in class
+    test_cases:
+      filePrefix: conversational_test_cases_
+      directory: testData/synthetic_data/multiturn/conversationalTestCases
+
+  context_construction_config:
+    critic_model: gpt-4o  # or any custom LLM model of type DeepEvalBaseLLM
+    # String: specifies which OpenAI GPT model to use for context quality_scores, OR any custom LLM model of type DeepEvalBaseLLM. Defaulted to the model used in the Synthesizer, else gpt-4o when initialized as a standalone instance
+    encoding: null  # String: the encoding to use to decode plain text-based files (.txt, .md, .markdown, .mdx). Defaulted to autodetecting the encoding. Set to null for autodetect.
+    max_contexts_per_document: 3  # Integer: the maximum number of contexts to be generated per document. Defaulted to 3.
+    min_contexts_per_document: 1  # Integer: the minimum number of contexts to be generated per document. Defaulted to 1.
+    max_context_length: 3  # Integer: specifies the number of text chunks to be generated per context (context length). Defaulted to 3.
+    min_context_length: 1  # Integer: specifies the minimum number of text chunks to be generated per context (context length). Defaulted to 1.
+    chunk_size: 1024  # Integer: specifies the size of text chunks (in tokens) to be considered during document parsing. Defaulted to 1024.
+    chunk_overlap: 0  # Integer: determines the overlap size between consecutive text chunks during document parsing. Defaulted to 0.
+    context_quality_threshold: 0.5  # Float: the minimum quality threshold for context selection. If the context quality is below threshold, the context will be rejected. Defaulted to 0.5.
+    context_similarity_threshold: 0.5  # Float: the minimum similarity score required for context grouping. Contexts with similarity scores below this threshold will be rejected. Defaulted to 0.5.
+    max_retries: 3  # Integer: specifies the number of times to retry context selection OR grouping if it does not meet the required quality OR similarity threshold. Defaulted to 3.
+    embedder: text-embedding-3-small  # String: specifies which OpenAI embedding model to use during document parsing and context grouping, OR any custom embedding model of type DeepEvalBaseEmbeddingModel. Defaulted to 'text-embedding-3-small'.

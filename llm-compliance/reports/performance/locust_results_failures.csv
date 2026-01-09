@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences
+POST,Query Question,CatchResponseError('Failed with status 0: '),2
+GET,Health Check,CatchResponseError('Health check failed: 0'),1
+GET,Root Endpoint,CatchResponseError('Root endpoint failed: 0'),2
+POST,Ask Question,CatchResponseError('Failed with status 0: '),5

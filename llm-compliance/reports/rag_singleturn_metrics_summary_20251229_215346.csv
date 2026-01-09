@@ -1,0 +1,6 @@
+metric,number_of_tests,mean,mean_threshold,status
+Answer Relevancy,3,0.8945,0.7,PASS
+Faithfulness,3,1.0,0.7,PASS
+Contextual Precision,3,1.0,0.7,PASS
+Contextual Recall,3,1.0,0.7,PASS
+Contextual Relevancy,3,0.5455,0.7,FAIL

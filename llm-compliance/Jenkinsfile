@@ -1,0 +1,536 @@
+pipeline {
+    agent any
+    
+    parameters {
+        choice(
+            name: 'TEST_TYPE',
+            choices: [
+                'all',
+                'sanity',
+                'bias',
+                'aiquality',
+                'rag',
+                'security',
+                'safety',
+                'privacy',
+                'agentic',
+                'multiturn',
+                'mcp',
+                'ops',
+                'unit',
+                'performance'
+            ],
+            description: 'Select test type to run'
+        )
+        booleanParam(
+            name: 'GENERATE_REPORTS',
+            defaultValue: true,
+            description: 'Generate metrics summary and evidence bundle'
+        )
+        booleanParam(
+            name: 'ARCHIVE_ARTIFACTS',
+            defaultValue: true,
+            description: 'Archive test reports and evidence'
+        )
+    }
+    
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+        timeout(time: 4, unit: 'HOURS')
+        timestamps()
+        ansiColor('xterm')
+    }
+    
+    // Scheduled triggers - uncomment to enable automatic runs
+    // Daily sanity: H 2 * * * (runs daily at 2 AM)
+    // Weekly comprehensive: H 3 * * 0 (runs Sunday at 3 AM)
+    // 
+    // Note: You can also configure these in Jenkins UI:
+    // Job Configuration → Build Triggers → Build periodically
+    properties([
+        pipelineTriggers([
+            // Uncomment the lines below to enable scheduled runs
+            // cron('H 2 * * *'),  // Daily sanity at 2 AM
+            // cron('H 3 * * 0')   // Weekly comprehensive on Sunday at 3 AM
+        ])
+    ])
+    
+    environment {
+        PYTHON_VERSION = '3.11'
+        VENV_PATH = "${WORKSPACE}/.venv"
+        VENV_GARAK_PATH = "${WORKSPACE}/.venv-garak"
+        VENV_GISKARD_PATH = "${WORKSPACE}/.venv-giskard"
+        REPORTS_DIR = "${WORKSPACE}/reports"
+        EVIDENCE_DIR = "${WORKSPACE}/evidence"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Setup Environment') {
+            steps {
+                script {
+                    def testType = params.TEST_TYPE ?: 'sanity'
+                    def venvPath = getVenvPath(testType)
+                    
+                    echo "Setting up virtual environment for test type: ${testType}"
+                    echo "Using virtual environment: ${venvPath}"
+                    
+                    bat """
+                        @echo off
+                        if not exist "${VENV_PATH}" (
+                            echo Creating main virtual environment...
+                            python -m venv "${VENV_PATH}"
+                        )
+                        call "${VENV_PATH}\\Scripts\\activate.bat"
+                        pip install --upgrade pip setuptools wheel
+                        pip install -r requirements.txt
+                        echo Main environment setup complete
+                    """
+                    
+                    // Setup Garak environment if needed
+                    if (testType == 'security' || testType == 'all') {
+                        bat """
+                            @echo off
+                            if not exist "${VENV_GARAK_PATH}" (
+                                echo Creating Garak virtual environment...
+                                python -m venv "${VENV_GARAK_PATH}"
+                            )
+                            call "${VENV_GARAK_PATH}\\Scripts\\activate.bat"
+                            pip install --upgrade pip setuptools wheel
+                            pip install garak || echo Warning: Could not install garak
+                            echo Garak environment setup complete
+                        """
+                    }
+                    
+                    // Setup Giskard environment if needed
+                    if (testType == 'safety' || testType == 'all') {
+                        bat """
+                            @echo off
+                            if not exist "${VENV_GISKARD_PATH}" (
+                                echo Creating Giskard virtual environment...
+                                python -m venv "${VENV_GISKARD_PATH}"
+                            )
+                            call "${VENV_GISKARD_PATH}\\Scripts\\activate.bat"
+                            pip install --upgrade pip setuptools wheel
+                            pip install giskard || echo Warning: Could not install giskard
+                            echo Giskard environment setup complete
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Determine test type based on parameter or default to sanity
+                    def testType = params.TEST_TYPE
+                    if (!testType || testType == 'null' || testType == '') {
+                        // Check if this is a scheduled build
+                        def causes = currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause')
+                        if (causes && !causes.isEmpty()) {
+                            // Scheduled build - determine type based on day
+                            def currentDay = new Date().format('EEEE', TimeZone.getTimeZone('UTC'))
+                            if (currentDay == 'Sunday') {
+                                testType = 'all'  // Weekly comprehensive run
+                                echo "Scheduled weekly comprehensive run detected"
+                            } else {
+                                testType = 'sanity'  // Daily sanity run
+                                echo "Scheduled daily sanity run detected"
+                            }
+                        } else {
+                            testType = 'sanity'  // Default for manual builds
+                            echo "Manual build - using default sanity tests"
+                        }
+                    }
+                    
+                    def testCommand = getTestCommand(testType)
+                    def venvPath = getVenvPath(testType)
+                    
+                    echo "Test Type: ${testType}"
+                    echo "Using virtual environment: ${venvPath}"
+                    
+                    bat """
+                        @echo off
+                        call "${venvPath}\\Scripts\\activate.bat"
+                        echo Running test type: ${testType}
+                        echo Test command: ${testCommand}
+                        ${testCommand}
+                    """
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResultsPattern: 'evidence/junit-*.xml'
+                }
+            }
+        }
+        
+        stage('Generate Reports') {
+            when {
+                expression { params.GENERATE_REPORTS == true }
+            }
+            steps {
+                script {
+                    bat """
+                        @echo off
+                        call "${VENV_PATH}\\Scripts\\activate.bat"
+                        echo Generating metrics summary...
+                        python -c "from utils.metricsHistoryTracker import MetricsHistoryTracker; tracker = MetricsHistoryTracker(); tracker.generate_summary_report()" || echo Warning: Could not generate metrics summary
+                        
+                        echo Building evidence bundle...
+                        python scripts/build_evidence_bundle.py || echo Warning: Could not build evidence bundle
+                    """
+                }
+            }
+        }
+        
+        stage('Generate Plots') {
+            when {
+                expression { params.GENERATE_REPORTS == true }
+            }
+            steps {
+                script {
+                    // Find the most recent summary CSV file using Python (cross-platform)
+                    def summaryFile = bat(
+                        script: """
+                            @echo off
+                            python -c "import glob, os; files = sorted(glob.glob('reports/multiple_agentic_metrics_summary_*.csv'), key=os.path.getmtime, reverse=True); print(files[0] if files else '')"
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (summaryFile) {
+                        echo "Found summary file: ${summaryFile}"
+                        
+                        // Prepare CSV files for Plot plugin (format: metric,mean,threshold)
+                        // Write Python script to handle Windows paths properly
+                        writeFile file: 'prepare_plots.py', text: """
+import pandas as pd
+import sys
+import os
+
+summary_file = sys.argv[1] if len(sys.argv) > 1 else ''
+if not summary_file or not os.path.exists(summary_file):
+    print('Summary file not found')
+    sys.exit(1)
+
+df = pd.read_csv(summary_file)
+
+# Create CSV for mean vs threshold plot (Plot plugin format)
+mean_df = df[['metric', 'mean', 'mean_threshold']].copy()
+mean_df.columns = ['metric', 'Mean Score', 'Threshold']
+mean_df.to_csv('reports/plot_mean_vs_threshold.csv', index=False)
+
+# Create CSV for number of tests plot
+tests_df = df[['metric', 'number_of_tests']].copy()
+tests_df.columns = ['metric', 'Number of Tests']
+tests_df.to_csv('reports/plot_test_counts.csv', index=False)
+
+print('Prepared CSV files for Plot plugin')
+"""
+                        bat """
+                            @echo off
+                            call "${VENV_PATH}\\Scripts\\activate.bat"
+                            python prepare_plots.py "${summaryFile}"
+                            del prepare_plots.py
+                        """
+                        
+                        // Plot 1: Mean Scores vs Thresholds
+                        plot csvFileName: 'plot_mean_vs_threshold.csv',
+                             csvSeries: [[
+                                 file: 'reports/plot_mean_vs_threshold.csv',
+                                 label: 'Mean Score',
+                                 inclusionFlag: 'INCLUDE_BY_STRING',
+                                 exclusionValues: '',
+                                 url: 'reports/plot_mean_vs_threshold.csv',
+                                 displayTableFlag: true
+                             ], [
+                                 file: 'reports/plot_mean_vs_threshold.csv',
+                                 label: 'Threshold',
+                                 inclusionFlag: 'INCLUDE_BY_STRING',
+                                 exclusionValues: '',
+                                 url: 'reports/plot_mean_vs_threshold.csv',
+                                 displayTableFlag: true
+                             ]],
+                             group: 'Agentic Metrics',
+                             numBuilds: '30',
+                             style: 'bar',
+                             title: 'Mean Scores vs Thresholds',
+                             useDescr: true,
+                             yaxis: 'Score',
+                             excludeZero: false,
+                             keepRecords: true
+                        
+                        // Plot 2: Number of Tests per Metric
+                        plot csvFileName: 'plot_test_counts.csv',
+                             csvSeries: [[
+                                 file: 'reports/plot_test_counts.csv',
+                                 label: 'Number of Tests',
+                                 inclusionFlag: 'INCLUDE_BY_STRING',
+                                 exclusionValues: '',
+                                 url: 'reports/plot_test_counts.csv',
+                                 displayTableFlag: true
+                             ]],
+                             group: 'Agentic Metrics',
+                             numBuilds: '30',
+                             style: 'bar',
+                             title: 'Number of Tests per Metric',
+                             useDescr: true,
+                             yaxis: 'Number of Tests',
+                             excludeZero: false,
+                             keepRecords: true
+                    } else {
+                        echo "No summary file found to generate plots from"
+                    }
+                }
+            }
+        }
+        
+        stage('Archive Artifacts') {
+            when {
+                expression { params.ARCHIVE_ARTIFACTS == true }
+            }
+            steps {
+                script {
+                    archiveArtifacts artifacts: 'evidence/**', fingerprint: true, allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'reports/**/*.csv', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'reports/**/*.json', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'reports/**/*.html', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'reports/**/*.jsonl', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'reports/**/*.png', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'reports/metrics_history.csv', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'reports/metrics_summary.json', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                // Cleanup
+                bat """
+                    @echo off
+                    echo Cleaning up temporary files...
+                    for /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d"
+                    for /r . %%f in (*.pyc) do @if exist "%%f" del /q "%%f"
+                """
+            }
+        }
+        success {
+            echo "✅ All tests passed successfully!"
+        }
+        failure {
+            echo "❌ Some tests failed. Check the test results above."
+        }
+        unstable {
+            echo "⚠️ Some tests were unstable or had warnings."
+        }
+    }
+}
+
+// Helper function to get test command based on test type
+def getTestCommand(testType) {
+    def commands = [:]
+    
+    // Sanity run - quick tests for daily validation
+    commands['sanity'] = '''
+        echo "Running sanity tests..."
+        pytest -v -x --tb=short \
+            tests/unit/ \
+            tests/security/test_rate_limit.py \
+            tests/security/test_authz.py \
+            tests/privacy/test_pii_output.py \
+            tests/safety/test_deepeval_safety_compliance.py \
+            --junitxml=evidence/junit-sanity.xml \
+            -m "not slow" || true
+    '''
+    
+    // All tests - comprehensive run (handles multiple venvs)
+    commands['all'] = '''
+        echo "Running all tests (comprehensive run)..."
+        
+        # Run tests that use main venv
+        echo "Running tests with main virtual environment..."
+        pytest -v --tb=short \
+            tests/eval/ \
+            tests/rag/ \
+            tests/privacy/ \
+            tests/multiturn/ \
+            tests/agentic/ \
+            tests/mcp/ \
+            tests/ops/ \
+            tests/unit/ \
+            tests/safety/test_deepeval_safety_compliance.py \
+            tests/safety/test_misuse_toxicity.py \
+            tests/safety/test_non_advice_toxicity.py \
+            tests/safety/test_role_violation_toxicity.py \
+            tests/safety/test_pii_output.py \
+            tests/security/test_authz.py \
+            tests/security/test_rate_limit.py \
+            tests/security/test_tool_allowlist.py \
+            --junitxml=evidence/junit-all-main.xml || true
+        
+        # Run Garak tests with .venv-garak
+        echo "Running Garak tests with .venv-garak..."
+        source ${VENV_GARAK_PATH}/bin/activate || . ${VENV_GARAK_PATH}/Scripts/activate
+        pytest -v --tb=short \
+            tests/security/test_garak.py \
+            tests/security/test_garak_tiers.py \
+            --junitxml=evidence/junit-all-garak.xml || true
+        
+        # Run Giskard tests with .venv-giskard
+        echo "Running Giskard tests with .venv-giskard..."
+        source ${VENV_GISKARD_PATH}/bin/activate || . ${VENV_GISKARD_PATH}/Scripts/activate
+        pytest -v --tb=short \
+            tests/safety/test_giskard_safety.py \
+            tests/safety/test_rag_giskard_safety.py \
+            --junitxml=evidence/junit-all-giskard.xml || true
+    '''
+    
+    // Bias tests
+    commands['bias'] = '''
+        echo "Running bias tests..."
+        pytest -v --tb=short \
+            tests/eval/test_deepeval_counterfactual_bias.py \
+            --junitxml=evidence/junit-bias.xml || true
+    '''
+    
+    // AI Quality / Behaviour tests
+    commands['aiquality'] = '''
+        echo "Running AI quality/behaviour tests..."
+        pytest -v --tb=short \
+            tests/eval/test_deepeval_behaviour.py \
+            --junitxml=evidence/junit-aiquality.xml || true
+    '''
+    
+    // RAG tests
+    commands['rag'] = '''
+        echo "Running RAG tests..."
+        pytest -v --tb=short \
+            tests/rag/test_ragas_rag.py \
+            --junitxml=evidence/junit-rag.xml || true
+    '''
+    
+    // Security tests (uses .venv-garak for Garak tests)
+    commands['security'] = '''
+        echo "Running security tests..."
+        # Run non-Garak tests with main venv
+        pytest -v --tb=short \
+            tests/security/test_authz.py \
+            tests/security/test_rate_limit.py \
+            tests/security/test_tool_allowlist.py \
+            --junitxml=evidence/junit-security-nongarak.xml || true
+        
+        # Run Garak tests with .venv-garak
+        echo "Running Garak tests with .venv-garak..."
+        source ${VENV_GARAK_PATH}/bin/activate || . ${VENV_GARAK_PATH}/Scripts/activate
+        pytest -v --tb=short \
+            tests/security/test_garak.py \
+            tests/security/test_garak_tiers.py \
+            --junitxml=evidence/junit-security-garak.xml || true
+    '''
+    
+    // Safety tests (uses .venv-giskard for Giskard tests)
+    commands['safety'] = '''
+        echo "Running safety tests..."
+        # Run non-Giskard tests with main venv
+        pytest -v --tb=short \
+            tests/safety/test_deepeval_safety_compliance.py \
+            tests/safety/test_misuse_toxicity.py \
+            tests/safety/test_non_advice_toxicity.py \
+            tests/safety/test_role_violation_toxicity.py \
+            tests/safety/test_pii_output.py \
+            --junitxml=evidence/junit-safety-nongiskard.xml || true
+        
+        # Run Giskard tests with .venv-giskard
+        echo "Running Giskard tests with .venv-giskard..."
+        source ${VENV_GISKARD_PATH}/bin/activate || . ${VENV_GISKARD_PATH}/Scripts/activate
+        pytest -v --tb=short \
+            tests/safety/test_giskard_safety.py \
+            tests/safety/test_rag_giskard_safety.py \
+            --junitxml=evidence/junit-safety-giskard.xml || true
+    '''
+    
+    // Privacy tests
+    commands['privacy'] = '''
+        echo "Running privacy tests..."
+        pytest -v --tb=short \
+            tests/privacy/test_pii_output.py \
+            tests/privacy/test_right_to_erasure.py \
+            tests/privacy/test_pii_logs_traces.py \
+            tests/privacy/testPiiprompts.py \
+            --junitxml=evidence/junit-privacy.xml || true
+    '''
+    
+    // Agentic tests - run only test_multiple_agentic_metrics.py
+    commands['agentic'] = '''
+        echo Running agentic tests...
+        pytest -v --tb=short tests/agentic/component/test_multiple_agentic_metrics.py --junitxml=evidence/junit-agentic.xml || echo Tests completed
+    '''
+    
+    // Multiturn tests
+    commands['multiturn'] = '''
+        echo "Running multiturn tests..."
+        pytest -v --tb=short \
+            tests/multiturn/ \
+            --junitxml=evidence/junit-multiturn.xml || true
+    '''
+    
+    // MCP tests
+    commands['mcp'] = '''
+        echo "Running MCP tests..."
+        pytest -v --tb=short \
+            tests/mcp/test_deepeval_mcp.py \
+            --junitxml=evidence/junit-mcp.xml || true
+    '''
+    
+    // Operations tests
+    commands['ops'] = '''
+        echo "Running operations tests..."
+        pytest -v --tb=short \
+            tests/ops/test_fallbacks.py \
+            tests/ops/test_latency_budget.py \
+            --junitxml=evidence/junit-ops.xml || true
+    '''
+    
+    // Unit tests
+    commands['unit'] = '''
+        echo "Running unit tests..."
+        pytest -v --tb=short \
+            tests/unit/ \
+            --junitxml=evidence/junit-unit.xml || true
+    '''
+    
+    // Performance tests (Locust load testing)
+    commands['performance'] = '''
+        echo "Running performance/load tests..."
+        echo "Note: This requires the FastAPI server to be running"
+        echo "Starting FastAPI server in background..."
+        # Start server in background (adjust as needed)
+        # python -m uvicorn app.fastapiragpdfagent:app --host 0.0.0.0 --port 8000 &
+        # sleep 10
+        # Run Locust tests
+        # locust -f tests/performance/locustLoad.py --host=http://localhost:8000 -u 10 -r 2 --run-time 2m --headless --csv=reports/performance/locust_results --html=reports/performance/locust_report.html || true
+        echo "Performance tests require manual server setup"
+    '''
+    
+    return commands[testType] ?: commands['sanity']
+}
+
+// Helper function to get virtual environment path based on test type
+def getVenvPath(testType) {
+    if (testType == 'security' || testType == 'all') {
+        return env.VENV_GARAK_PATH
+    } else if (testType == 'safety' || testType == 'all') {
+        return env.VENV_GISKARD_PATH
+    } else {
+        return env.VENV_PATH
+    }
+}

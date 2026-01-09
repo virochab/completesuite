@@ -1,0 +1,7 @@
+{"id": "arg_001", "query": "What's the weather like in New York?", "category": "weather_query", "expected_tool": "get_current_weather", "expected_args": {"location": "New York"}}
+{"id": "arg_002", "query": "Can you check the weather in Tokyo?", "category": "weather_query", "expected_tool": "get_current_weather", "expected_args": {"location": "Tokyo"}}
+{"id": "arg_003", "query": "Tell me about the weather in London and Moscow", "category": "weather_query", "expected_tool": "get_current_weather", "expected_args": {"location": "London"}}
+{"id": "arg_004", "query": "What's the current weather in Paris?", "category": "weather_query", "expected_tool": "get_current_weather", "expected_args": {"location": "Paris"}}
+{"id": "arg_005", "query": "How's the weather in San Francisco, CA?", "category": "weather_query", "expected_tool": "get_current_weather", "expected_args": {"location": "San Francisco, CA"}}
+{"id": "arg_006", "query": "Check weather for Los Angeles", "category": "weather_query", "expected_tool": "get_current_weather", "expected_args": {"location": "Los Angeles"}}
+

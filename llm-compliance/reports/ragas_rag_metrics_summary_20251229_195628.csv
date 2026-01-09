@@ -1,0 +1,11 @@
+metric,number_of_tests,mean,mean_threshold,status
+user_input,3,0.0,0.7,FAIL
+retrieved_contexts,3,0.0,0.7,FAIL
+response,3,0.0,0.7,FAIL
+reference,3,0.0,0.7,FAIL
+faithfulness,3,nan,0.8,FAIL
+answer_relevancy,3,nan,0.7,FAIL
+context_precision,3,nan,0.7,FAIL
+context_recall,3,nan,0.7,FAIL
+context_entity_recall,3,nan,0.65,FAIL
+answer_correctness,3,nan,0.7,FAIL

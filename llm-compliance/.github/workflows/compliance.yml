@@ -1,0 +1,34 @@
+name: LLM Compliance
+
+on:
+  pull_request:
+  schedule:
+    - cron: "0 2 * * *"   # nightly UTC
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Run fast checks (PR gate)
+        if: github.event_name == 'pull_request'
+        run: |
+          pytest -q tests/unit tests/security tests/privacy --junitxml=evidence/junit-fast.xml
+      - name: Run eval checks (nightly / pre-release)
+        if: github.event_name != 'pull_request'
+        run: |
+          pytest -q tests/eval tests/ops --junitxml=evidence/junit-eval.xml
+      - name: Build evidence bundle
+        run: python scripts/build_evidence_bundle.py
+      - name: Upload evidence artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-evidence
+          path: evidence/
+
