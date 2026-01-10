@@ -258,7 +258,193 @@ pipeline {
                                 }
                                 echo "Using plot file: ${relativePlotFile}"
                                 
-                                generatePlots(relativePlotFile)
+                                // Plot 1: Mean Scores Over Time
+                                plot csvFileName: 'agentic_metrics_plot.csv',
+                                     csvSeries: [[
+                                         file: relativePlotFile,
+                                         label: 'Task_Completion_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Step_Efficiency_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Adherence_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Quality_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ]],
+                                     group: 'Agentic Metrics',
+                                     numBuilds: '30',
+                                     style: 'line',
+                                     title: 'Agentic Metrics: Mean Scores Over Time',
+                                     useDescr: true,
+                                     yaxis: 'Score',
+                                     excludeZero: false,
+                                     keepRecords: true
+                                
+                                // Plot 2: Mean Scores vs Thresholds
+                                plot csvFileName: 'agentic_thresholds_plot.csv',
+                                     csvSeries: [[
+                                         file: relativePlotFile,
+                                         label: 'Task_Completion_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Task_Completion_threshold',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Step_Efficiency_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Step_Efficiency_threshold',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Adherence_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Adherence_threshold',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Quality_mean',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Quality_threshold',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ]],
+                                     group: 'Agentic Metrics',
+                                     numBuilds: '30',
+                                     style: 'line',
+                                     title: 'Agentic Metrics: Mean Scores vs Thresholds',
+                                     useDescr: true,
+                                     yaxis: 'Score',
+                                     excludeZero: false,
+                                     keepRecords: true
+                                
+                                // Plot 3: Number of Tests Over Time
+                                plot csvFileName: 'agentic_tests_count_plot.csv',
+                                     csvSeries: [[
+                                         file: relativePlotFile,
+                                         label: 'Task_Completion_tests',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Step_Efficiency_tests',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Adherence_tests',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Quality_tests',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ]],
+                                     group: 'Agentic Metrics',
+                                     numBuilds: '30',
+                                     style: 'line',
+                                     title: 'Agentic Metrics: Number of Tests Over Time',
+                                     useDescr: true,
+                                     yaxis: 'Number of Tests',
+                                     excludeZero: false,
+                                     keepRecords: true
+                                
+                                // Plot 4: Pass Rate Over Time
+                                plot csvFileName: 'agentic_pass_rate_plot.csv',
+                                     csvSeries: [[
+                                         file: relativePlotFile,
+                                         label: 'Task_Completion_pass_rate',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Step_Efficiency_pass_rate',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Adherence_pass_rate',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ], [
+                                         file: relativePlotFile,
+                                         label: 'Plan_Quality_pass_rate',
+                                         inclusionFlag: 'INCLUDE_BY_STRING',
+                                         exclusionValues: '',
+                                         url: relativePlotFile,
+                                         displayTableFlag: true
+                                     ]],
+                                     group: 'Agentic Metrics',
+                                     numBuilds: '30',
+                                     style: 'line',
+                                     title: 'Agentic Metrics: Pass Rate Over Time',
+                                     useDescr: true,
+                                     yaxis: 'Pass Rate (%)',
+                                     excludeZero: false,
+                                     keepRecords: true
                             } else {
                                 echo "No plot CSV file found (multiple_agentic_metrics_summary_plot_*.csv) to generate plots from"
                             }
@@ -281,7 +467,193 @@ pipeline {
                             }
                             echo "Using plot file: ${relativePlotFile}"
                             
-                            generatePlots(relativePlotFile)
+                            // Plot 1: Mean Scores Over Time
+                            plot csvFileName: 'agentic_metrics_plot.csv',
+                                 csvSeries: [[
+                                     file: relativePlotFile,
+                                     label: 'Task_Completion_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Step_Efficiency_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Adherence_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Quality_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ]],
+                                 group: 'Agentic Metrics',
+                                 numBuilds: '30',
+                                 style: 'line',
+                                 title: 'Agentic Metrics: Mean Scores Over Time',
+                                 useDescr: true,
+                                 yaxis: 'Score',
+                                 excludeZero: false,
+                                 keepRecords: true
+                            
+                            // Plot 2: Mean Scores vs Thresholds
+                            plot csvFileName: 'agentic_thresholds_plot.csv',
+                                 csvSeries: [[
+                                     file: relativePlotFile,
+                                     label: 'Task_Completion_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Task_Completion_threshold',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Step_Efficiency_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Step_Efficiency_threshold',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Adherence_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Adherence_threshold',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Quality_mean',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Quality_threshold',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ]],
+                                 group: 'Agentic Metrics',
+                                 numBuilds: '30',
+                                 style: 'line',
+                                 title: 'Agentic Metrics: Mean Scores vs Thresholds',
+                                 useDescr: true,
+                                 yaxis: 'Score',
+                                 excludeZero: false,
+                                 keepRecords: true
+                            
+                            // Plot 3: Number of Tests Over Time
+                            plot csvFileName: 'agentic_tests_count_plot.csv',
+                                 csvSeries: [[
+                                     file: relativePlotFile,
+                                     label: 'Task_Completion_tests',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Step_Efficiency_tests',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Adherence_tests',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Quality_tests',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ]],
+                                 group: 'Agentic Metrics',
+                                 numBuilds: '30',
+                                 style: 'line',
+                                 title: 'Agentic Metrics: Number of Tests Over Time',
+                                 useDescr: true,
+                                 yaxis: 'Number of Tests',
+                                 excludeZero: false,
+                                 keepRecords: true
+                            
+                            // Plot 4: Pass Rate Over Time
+                            plot csvFileName: 'agentic_pass_rate_plot.csv',
+                                 csvSeries: [[
+                                     file: relativePlotFile,
+                                     label: 'Task_Completion_pass_rate',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Step_Efficiency_pass_rate',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Adherence_pass_rate',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ], [
+                                     file: relativePlotFile,
+                                     label: 'Plan_Quality_pass_rate',
+                                     inclusionFlag: 'INCLUDE_BY_STRING',
+                                     exclusionValues: '',
+                                     url: relativePlotFile,
+                                     displayTableFlag: true
+                                 ]],
+                                 group: 'Agentic Metrics',
+                                 numBuilds: '30',
+                                 style: 'line',
+                                 title: 'Agentic Metrics: Pass Rate Over Time',
+                                 useDescr: true,
+                                 yaxis: 'Pass Rate (%)',
+                                 excludeZero: false,
+                                 keepRecords: true
                         } else {
                             echo "No plot CSV file found (multiple_agentic_metrics_summary_plot_*.csv) to generate plots from"
                         }
@@ -289,202 +661,6 @@ pipeline {
                 }
             }
         }
-        
-// Helper function to generate plots from the transformed CSV
-def generatePlots(relativePlotFile) {
-    if (!relativePlotFile) {
-        return
-    }
-    
-    // Plot 1: Mean Scores Over Time
-    plot csvFileName: 'agentic_metrics_plot.csv',
-         csvSeries: [[
-             file: relativePlotFile,
-             label: 'Task_Completion_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Step_Efficiency_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Adherence_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Quality_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ]],
-         group: 'Agentic Metrics',
-         numBuilds: '30',
-         style: 'line',
-         title: 'Agentic Metrics: Mean Scores Over Time',
-         useDescr: true,
-         yaxis: 'Score',
-         excludeZero: false,
-         keepRecords: true
-    
-    // Plot 2: Mean Scores vs Thresholds
-    plot csvFileName: 'agentic_thresholds_plot.csv',
-         csvSeries: [[
-             file: relativePlotFile,
-             label: 'Task_Completion_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Task_Completion_threshold',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Step_Efficiency_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Step_Efficiency_threshold',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Adherence_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Adherence_threshold',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Quality_mean',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Quality_threshold',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ]],
-         group: 'Agentic Metrics',
-         numBuilds: '30',
-         style: 'line',
-         title: 'Agentic Metrics: Mean Scores vs Thresholds',
-         useDescr: true,
-         yaxis: 'Score',
-         excludeZero: false,
-         keepRecords: true
-    
-    // Plot 3: Number of Tests Over Time
-    plot csvFileName: 'agentic_tests_count_plot.csv',
-         csvSeries: [[
-             file: relativePlotFile,
-             label: 'Task_Completion_tests',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Step_Efficiency_tests',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Adherence_tests',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Quality_tests',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ]],
-         group: 'Agentic Metrics',
-         numBuilds: '30',
-         style: 'line',
-         title: 'Agentic Metrics: Number of Tests Over Time',
-         useDescr: true,
-         yaxis: 'Number of Tests',
-         excludeZero: false,
-         keepRecords: true
-    
-    // Plot 4: Pass Rate Over Time
-    plot csvFileName: 'agentic_pass_rate_plot.csv',
-         csvSeries: [[
-             file: relativePlotFile,
-             label: 'Task_Completion_pass_rate',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Step_Efficiency_pass_rate',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Adherence_pass_rate',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ], [
-             file: relativePlotFile,
-             label: 'Plan_Quality_pass_rate',
-             inclusionFlag: 'INCLUDE_BY_STRING',
-             exclusionValues: '',
-             url: relativePlotFile,
-             displayTableFlag: true
-         ]],
-         group: 'Agentic Metrics',
-         numBuilds: '30',
-         style: 'line',
-         title: 'Agentic Metrics: Pass Rate Over Time',
-         useDescr: true,
-         yaxis: 'Pass Rate (%)',
-         excludeZero: false,
-         keepRecords: true
-}
-
         
         stage('Archive Artifacts') {
             when {
