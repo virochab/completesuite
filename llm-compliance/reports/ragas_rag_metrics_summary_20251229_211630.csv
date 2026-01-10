@@ -1,7 +1,0 @@
-metric,number_of_tests,mean,mean_threshold,status
-context_recall,3,0.5667,0.7,FAIL
-context_entity_recall,3,0.6699,0.65,PASS
-answer_relevancy,3,0.9294,0.7,PASS
-answer_correctness,3,0.9821,0.7,PASS
-context_precision,3,0.5,0.7,FAIL
-faithfulness,3,0.6719,0.8,FAIL

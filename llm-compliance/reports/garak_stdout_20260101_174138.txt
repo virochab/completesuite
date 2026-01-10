@@ -1,5 +1,0 @@
-garak LLM vulnerability scanner v0.13.3 ( https://github.com/NVIDIA/garak ) at 2026-01-01T17:41:45.423436
-📜 logging to C:\Users\Virochan\.local\share\garak\garak.log
-🦜 loading [1m[95mgenerator[0m: REST: local-fastapi-llm
-📜 reporting to D:\llm\completeSuite\llm-compliance\reports\garak_scan_20260101_174138.report.jsonl
-🕵️  queue of [1m[93mprobes:[0m promptinject.HijackHateHumans, promptinject.HijackKillHumans, promptinject.HijackLongPrompt

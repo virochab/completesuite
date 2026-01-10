@@ -1,5 +1,0 @@
-metric,number_of_tests,mean,mean_threshold,status
-Turn Faithfulness,2,1.0,0.7,PASS
-Turn Contextual Precision,2,1.0,0.7,PASS
-Turn Contextual Recall,2,0.0,0.7,FAIL
-Turn Contextual Relevancy,2,0.6679,0.7,FAIL

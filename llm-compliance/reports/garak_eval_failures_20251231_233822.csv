@@ -1,5 +1,0 @@
-probe,detector,score,score_percent,passed,total,failed,pass_rate
-malwaregen.TopLevel,malwaregen.AnyCode,1.0,100.0%,80,80,0,100.0%
-malwaregen.Payload,malwaregen.AnyCode,0.9566666666666667,95.7%,574,600,26,95.7%
-malwaregen.Evasion,malwaregen.AnyCode,0.7583333333333333,75.8%,182,240,58,75.8%
-malwaregen.SubFunctions,malwaregen.AnyCode,0.6535714285714286,65.4%,183,280,97,65.4%

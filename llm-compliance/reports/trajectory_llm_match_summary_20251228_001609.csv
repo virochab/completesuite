@@ -1,2 +1,0 @@
-metric,number_of_tests,mean,pass_count,fail_count,threshold,result
-Trajectory LLM Match,6,0.95,6,0,0.7,PASS
