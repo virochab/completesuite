@@ -537,7 +537,7 @@ def test_multiple_agentic_metrics(thresholds):
             f"\n\nFound {len(metric_mean_failures)} metric(s) with average scores below mean threshold:\n" +
             "\n".join(f"  - {f}" for f in metric_mean_failures)
         )
-        #pytest.fail(failure_summary)
+        pytest.fail(failure_summary)
     
     # Assert individual test case failures at the end (if any)
     if failures:
@@ -547,5 +547,5 @@ def test_multiple_agentic_metrics(thresholds):
         )
         if len(failures) > 50:
             failure_message += f"\n  ... and {len(failures) - 50} more failures"
-        pytest.fail(failure_message)
+        #pytest.fail(failure_message)
 
