@@ -38,22 +38,17 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '30'))
         timeout(time: 4, unit: 'HOURS')
         timestamps()
-        ansiColor('xterm')
+        // Scheduled triggers - uncomment to enable automatic runs
+        // Daily sanity: H 2 * * * (runs daily at 2 AM)
+        // Weekly comprehensive: H 3 * * 0 (runs Sunday at 3 AM)
+        // 
+        // Note: You can also configure these in Jenkins UI:
+        // Job Configuration → Build Triggers → Build periodically
+        // pipelineTriggers([
+        //     cron('H 2 * * *'),  // Daily sanity at 2 AM
+        //     cron('H 3 * * 0')   // Weekly comprehensive on Sunday at 3 AM
+        // ])
     }
-    
-    // Scheduled triggers - uncomment to enable automatic runs
-    // Daily sanity: H 2 * * * (runs daily at 2 AM)
-    // Weekly comprehensive: H 3 * * 0 (runs Sunday at 3 AM)
-    // 
-    // Note: You can also configure these in Jenkins UI:
-    // Job Configuration → Build Triggers → Build periodically
-    properties([
-        pipelineTriggers([
-            // Uncomment the lines below to enable scheduled runs
-            // cron('H 2 * * *'),  // Daily sanity at 2 AM
-            // cron('H 3 * * 0')   // Weekly comprehensive on Sunday at 3 AM
-        ])
-    ])
     
     environment {
         PYTHON_VERSION = '3.11'
@@ -182,7 +177,7 @@ pipeline {
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResultsPattern: 'test-reports/junit-*.xml'
+                    junit allowEmptyResults: true, testResults: 'test-reports/junit-*.xml'
                 }
             }
         }
