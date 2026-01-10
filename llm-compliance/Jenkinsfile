@@ -5,7 +5,6 @@ pipeline {
         choice(
             name: 'TEST_TYPE',
             choices: [
-                'agentic',
                 'all',
                 'sanity',
                 'bias',
@@ -14,6 +13,7 @@ pipeline {
                 'security',
                 'safety',
                 'privacy',
+                'agentic',
                 'multiturn',
                 'mcp',
                 'ops',
@@ -38,12 +38,22 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '30'))
         timeout(time: 4, unit: 'HOURS')
         timestamps()
+        ansiColor('xterm')
     }
     
-    // Scheduled triggers - configure in Jenkins UI:
-    // Job Configuration → Build Triggers → Build periodically
+    // Scheduled triggers - uncomment to enable automatic runs
     // Daily sanity: H 2 * * * (runs daily at 2 AM)
     // Weekly comprehensive: H 3 * * 0 (runs Sunday at 3 AM)
+    // 
+    // Note: You can also configure these in Jenkins UI:
+    // Job Configuration → Build Triggers → Build periodically
+    properties([
+        pipelineTriggers([
+            // Uncomment the lines below to enable scheduled runs
+            // cron('H 2 * * *'),  // Daily sanity at 2 AM
+            // cron('H 3 * * 0')   // Weekly comprehensive on Sunday at 3 AM
+        ])
+    ])
     
     environment {
         PYTHON_VERSION = '3.11'
@@ -52,9 +62,6 @@ pipeline {
         VENV_GISKARD_PATH = "${WORKSPACE}/.venv-giskard"
         REPORTS_DIR = "${WORKSPACE}/reports"
         EVIDENCE_DIR = "${WORKSPACE}/evidence"
-        // Note: API keys should be set in Jenkins UI, not hardcoded here
-        // For standard OpenAI: Set OPENAI_API_KEY in Jenkins environment variables
-        // For Azure OpenAI: Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, etc.
     }
     
     stages {
@@ -81,7 +88,7 @@ pipeline {
                         )
                         call "${VENV_PATH}\\Scripts\\activate.bat"
                         pip install --upgrade pip setuptools wheel
-                        pip install -r mainsuiterequirements.txt
+                        pip install -r requirements.txt
                         echo Main environment setup complete
                     """
                     
@@ -148,18 +155,34 @@ pipeline {
                     echo "Test Type: ${testType}"
                     echo "Using virtual environment: ${venvPath}"
                     
-                    bat """
-                        @echo off
-                        call "${venvPath}\\Scripts\\activate.bat"
-                        echo Running test type: ${testType}
-                        echo Test command: ${testCommand}
-                        ${testCommand}
-                    """
+                    // Determine the working directory for tests
+                    // Check if tests directory exists in current directory, otherwise look in llm-compliance
+                    def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
+                    
+                    if (testDir) {
+                        dir(testDir) {
+                            bat """
+                                @echo off
+                                call "${venvPath}\\Scripts\\activate.bat"
+                                echo Running test type: ${testType}
+                                echo Test command: ${testCommand}
+                                ${testCommand}
+                            """
+                        }
+                    } else {
+                        bat """
+                            @echo off
+                            call "${venvPath}\\Scripts\\activate.bat"
+                            echo Running test type: ${testType}
+                            echo Test command: ${testCommand}
+                            ${testCommand}
+                        """
+                    }
                 }
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'junit-*.xml'
+                    junit allowEmptyResults: true, testResultsPattern: 'test-reports/junit-*.xml'
                 }
             }
         }
@@ -291,6 +314,7 @@ print('Prepared CSV files for Plot plugin')
             }
             steps {
                 script {
+                    archiveArtifacts artifacts: 'test-reports/**', fingerprint: true, allowEmptyArchive: true
                     archiveArtifacts artifacts: 'evidence/**', fingerprint: true, allowEmptyArchive: true
                     archiveArtifacts artifacts: 'reports/**/*.csv', allowEmptyArchive: true
                     archiveArtifacts artifacts: 'reports/**/*.json', allowEmptyArchive: true
@@ -335,19 +359,21 @@ def getTestCommand(testType) {
     // Sanity run - quick tests for daily validation
     commands['sanity'] = '''
         echo "Running sanity tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v -x --tb=short \
             tests/unit/ \
             tests/security/test_rate_limit.py \
             tests/security/test_authz.py \
             tests/privacy/test_pii_output.py \
             tests/safety/test_deepeval_safety_compliance.py \
-            --junitxml=evidence/junit-sanity.xml \
+            --junitxml=test-reports/junit-sanity.xml \
             -m "not slow" || true
     '''
     
     // All tests - comprehensive run (handles multiple venvs)
     commands['all'] = '''
         echo "Running all tests (comprehensive run)..."
+        if not exist "test-reports" mkdir test-reports
         
         # Run tests that use main venv
         echo "Running tests with main virtual environment..."
@@ -368,7 +394,7 @@ def getTestCommand(testType) {
             tests/security/test_authz.py \
             tests/security/test_rate_limit.py \
             tests/security/test_tool_allowlist.py \
-            --junitxml=evidence/junit-all-main.xml || true
+            --junitxml=test-reports/junit-all-main.xml || true
         
         # Run Garak tests with .venv-garak
         echo "Running Garak tests with .venv-garak..."
@@ -376,7 +402,7 @@ def getTestCommand(testType) {
         pytest -v --tb=short \
             tests/security/test_garak.py \
             tests/security/test_garak_tiers.py \
-            --junitxml=evidence/junit-all-garak.xml || true
+            --junitxml=test-reports/junit-all-garak.xml || true
         
         # Run Giskard tests with .venv-giskard
         echo "Running Giskard tests with .venv-giskard..."
@@ -384,42 +410,46 @@ def getTestCommand(testType) {
         pytest -v --tb=short \
             tests/safety/test_giskard_safety.py \
             tests/safety/test_rag_giskard_safety.py \
-            --junitxml=evidence/junit-all-giskard.xml || true
+            --junitxml=test-reports/junit-all-giskard.xml || true
     '''
     
     // Bias tests
     commands['bias'] = '''
         echo "Running bias tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/eval/test_deepeval_counterfactual_bias.py \
-            --junitxml=evidence/junit-bias.xml || true
+            --junitxml=test-reports/junit-bias.xml || true
     '''
     
     // AI Quality / Behaviour tests
     commands['aiquality'] = '''
         echo "Running AI quality/behaviour tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/eval/test_deepeval_behaviour.py \
-            --junitxml=evidence/junit-aiquality.xml || true
+            --junitxml=test-reports/junit-aiquality.xml || true
     '''
     
     // RAG tests
     commands['rag'] = '''
         echo "Running RAG tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/rag/test_ragas_rag.py \
-            --junitxml=evidence/junit-rag.xml || true
+            --junitxml=test-reports/junit-rag.xml || true
     '''
     
     // Security tests (uses .venv-garak for Garak tests)
     commands['security'] = '''
         echo "Running security tests..."
+        if not exist "test-reports" mkdir test-reports
         # Run non-Garak tests with main venv
         pytest -v --tb=short \
             tests/security/test_authz.py \
             tests/security/test_rate_limit.py \
             tests/security/test_tool_allowlist.py \
-            --junitxml=evidence/junit-security-nongarak.xml || true
+            --junitxml=test-reports/junit-security-nongarak.xml || true
         
         # Run Garak tests with .venv-garak
         echo "Running Garak tests with .venv-garak..."
@@ -427,12 +457,13 @@ def getTestCommand(testType) {
         pytest -v --tb=short \
             tests/security/test_garak.py \
             tests/security/test_garak_tiers.py \
-            --junitxml=evidence/junit-security-garak.xml || true
+            --junitxml=test-reports/junit-security-garak.xml || true
     '''
     
     // Safety tests (uses .venv-giskard for Giskard tests)
     commands['safety'] = '''
         echo "Running safety tests..."
+        if not exist "test-reports" mkdir test-reports
         # Run non-Giskard tests with main venv
         pytest -v --tb=short \
             tests/safety/test_deepeval_safety_compliance.py \
@@ -440,7 +471,7 @@ def getTestCommand(testType) {
             tests/safety/test_non_advice_toxicity.py \
             tests/safety/test_role_violation_toxicity.py \
             tests/safety/test_pii_output.py \
-            --junitxml=evidence/junit-safety-nongiskard.xml || true
+            --junitxml=test-reports/junit-safety-nongiskard.xml || true
         
         # Run Giskard tests with .venv-giskard
         echo "Running Giskard tests with .venv-giskard..."
@@ -448,57 +479,63 @@ def getTestCommand(testType) {
         pytest -v --tb=short \
             tests/safety/test_giskard_safety.py \
             tests/safety/test_rag_giskard_safety.py \
-            --junitxml=evidence/junit-safety-giskard.xml || true
+            --junitxml=test-reports/junit-safety-giskard.xml || true
     '''
     
     // Privacy tests
     commands['privacy'] = '''
         echo "Running privacy tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/privacy/test_pii_output.py \
             tests/privacy/test_right_to_erasure.py \
             tests/privacy/test_pii_logs_traces.py \
             tests/privacy/testPiiprompts.py \
-            --junitxml=evidence/junit-privacy.xml || true
+            --junitxml=test-reports/junit-privacy.xml || true
     '''
     
     // Agentic tests - run only test_multiple_agentic_metrics.py
     commands['agentic'] = '''
         echo Running agentic tests...
-        pytest -v --tb=short tests/agentic/component/test_multiple_agentic_metrics.py --junitxml=junit-agentic.xml || echo Tests completed
+        if not exist "test-reports" mkdir test-reports
+        pytest -v --tb=short tests/agentic/component/test_multiple_agentic_metrics.py --junitxml=test-reports/junit-agentic.xml || echo Tests completed
     '''
     
     // Multiturn tests
     commands['multiturn'] = '''
         echo "Running multiturn tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/multiturn/ \
-            --junitxml=evidence/junit-multiturn.xml || true
+            --junitxml=test-reports/junit-multiturn.xml || true
     '''
     
     // MCP tests
     commands['mcp'] = '''
         echo "Running MCP tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/mcp/test_deepeval_mcp.py \
-            --junitxml=evidence/junit-mcp.xml || true
+            --junitxml=test-reports/junit-mcp.xml || true
     '''
     
     // Operations tests
     commands['ops'] = '''
         echo "Running operations tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/ops/test_fallbacks.py \
             tests/ops/test_latency_budget.py \
-            --junitxml=evidence/junit-ops.xml || true
+            --junitxml=test-reports/junit-ops.xml || true
     '''
     
     // Unit tests
     commands['unit'] = '''
         echo "Running unit tests..."
+        if not exist "test-reports" mkdir test-reports
         pytest -v --tb=short \
             tests/unit/ \
-            --junitxml=evidence/junit-unit.xml || true
+            --junitxml=test-reports/junit-unit.xml || true
     '''
     
     // Performance tests (Locust load testing)
