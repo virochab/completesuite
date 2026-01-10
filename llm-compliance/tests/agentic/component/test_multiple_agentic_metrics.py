@@ -448,6 +448,47 @@ def test_multiple_agentic_metrics(thresholds):
                 })
         
         print(f"\n📄 Metric Summary CSV: {summary_csv_file}")
+        
+        # Create transformed CSV with one row per timestamp for Jenkins Plot plugin
+        # Transform format: one row with all metrics as columns (metric_name_mean, metric_name_threshold, metric_name_tests, metric_name_status)
+        transformed_csv_file = reports_dir / f"multiple_agentic_metrics_summary_plot_{timestamp}.csv"
+        
+        # Create a single row with all metric data
+        transformed_row = {"timestamp": timestamp}
+        
+        # Add each metric's data as separate columns
+        for metric_name, metric_data in metric_averages.items():
+            # Sanitize metric name for column names (replace spaces with underscores)
+            metric_col_prefix = metric_name.replace(" ", "_")
+            transformed_row[f"{metric_col_prefix}_mean"] = round(metric_data["average"], 4)
+            transformed_row[f"{metric_col_prefix}_threshold"] = round(metric_data["mean_threshold"], 4)
+            transformed_row[f"{metric_col_prefix}_tests"] = metric_data["total_count"]
+            transformed_row[f"{metric_col_prefix}_status"] = metric_data["status"]
+            transformed_row[f"{metric_col_prefix}_passed"] = metric_data["passed_count"]
+            transformed_row[f"{metric_col_prefix}_pass_rate"] = round(metric_data["pass_rate"], 2)
+        
+        # Define column order: timestamp, then each metric's columns in order
+        transformed_fieldnames = ["timestamp"]
+        for metric_name in metrics_to_analyze.keys():
+            metric_col_prefix = metric_name.replace(" ", "_")
+            transformed_fieldnames.extend([
+                f"{metric_col_prefix}_mean",
+                f"{metric_col_prefix}_threshold",
+                f"{metric_col_prefix}_tests",
+                f"{metric_col_prefix}_passed",
+                f"{metric_col_prefix}_pass_rate",
+                f"{metric_col_prefix}_status"
+            ])
+        
+        # Write transformed CSV with one row
+        with open(transformed_csv_file, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=transformed_fieldnames)
+            writer.writeheader()
+            # Ensure all fields are present in the row
+            complete_row = {field: transformed_row.get(field, None) for field in transformed_fieldnames}
+            writer.writerow(complete_row)
+        
+        print(f"📊 Transformed Plot CSV (one row): {transformed_csv_file}")
     
     # Print detailed results
     print("\n" + "="*60)

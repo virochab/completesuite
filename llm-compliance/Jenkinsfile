@@ -182,6 +182,34 @@ pipeline {
             }
         }
         
+        stage('Publish Test Results') {
+            steps {
+                script {
+                    def testType = params.TEST_TYPE ?: 'sanity'
+                    def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
+                    
+                    // Determine the JUnit XML file pattern based on test type
+                    def junitPattern = "test-reports/junit-*.xml"
+                    
+                    if (testDir) {
+                        dir(testDir) {
+                            // Publish all JUnit XML files
+                            junit testResults: junitPattern, allowEmptyResults: false
+                            
+                            // Archive the JUnit XML files
+                            archiveArtifacts artifacts: junitPattern, allowEmptyArchive: true
+                        }
+                    } else {
+                        // Publish all JUnit XML files
+                        junit testResults: junitPattern, allowEmptyResults: false
+                        
+                        // Archive the JUnit XML files
+                        archiveArtifacts artifacts: junitPattern, allowEmptyArchive: true
+                    }
+                }
+            }
+        }
+        
         stage('Generate Reports') {
             when {
                 expression { params.GENERATE_REPORTS == true }
@@ -207,101 +235,256 @@ pipeline {
             }
             steps {
                 script {
-                    // Find the most recent summary CSV file using Python (cross-platform)
-                    def summaryFile = bat(
-                        script: """
-                            @echo off
-                            python -c "import glob, os; files = sorted(glob.glob('reports/multiple_agentic_metrics_summary_*.csv'), key=os.path.getmtime, reverse=True); print(files[0] if files else '')"
-                        """,
-                        returnStdout: true
-                    ).trim()
+                    // Determine the working directory for finding the plot CSV file
+                    def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
                     
-                    if (summaryFile) {
-                        echo "Found summary file: ${summaryFile}"
-                        
-                        // Prepare CSV files for Plot plugin (format: metric,mean,threshold)
-                        // Write Python script to handle Windows paths properly
-                        writeFile file: 'prepare_plots.py', text: """
-import pandas as pd
-import sys
-import os
-
-summary_file = sys.argv[1] if len(sys.argv) > 1 else ''
-if not summary_file or not os.path.exists(summary_file):
-    print('Summary file not found')
-    sys.exit(1)
-
-df = pd.read_csv(summary_file)
-
-# Create CSV for mean vs threshold plot (Plot plugin format)
-mean_df = df[['metric', 'mean', 'mean_threshold']].copy()
-mean_df.columns = ['metric', 'Mean Score', 'Threshold']
-mean_df.to_csv('reports/plot_mean_vs_threshold.csv', index=False)
-
-# Create CSV for number of tests plot
-tests_df = df[['metric', 'number_of_tests']].copy()
-tests_df.columns = ['metric', 'Number of Tests']
-tests_df.to_csv('reports/plot_test_counts.csv', index=False)
-
-print('Prepared CSV files for Plot plugin')
-"""
-                        bat """
-                            @echo off
-                            call "${VENV_PATH}\\Scripts\\activate.bat"
-                            python prepare_plots.py "${summaryFile}"
-                            del prepare_plots.py
-                        """
-                        
-                        // Plot 1: Mean Scores vs Thresholds
-                        plot csvFileName: 'plot_mean_vs_threshold.csv',
-                             csvSeries: [[
-                                 file: 'reports/plot_mean_vs_threshold.csv',
-                                 label: 'Mean Score',
-                                 inclusionFlag: 'INCLUDE_BY_STRING',
-                                 exclusionValues: '',
-                                 url: 'reports/plot_mean_vs_threshold.csv',
-                                 displayTableFlag: true
-                             ], [
-                                 file: 'reports/plot_mean_vs_threshold.csv',
-                                 label: 'Threshold',
-                                 inclusionFlag: 'INCLUDE_BY_STRING',
-                                 exclusionValues: '',
-                                 url: 'reports/plot_mean_vs_threshold.csv',
-                                 displayTableFlag: true
-                             ]],
-                             group: 'Agentic Metrics',
-                             numBuilds: '30',
-                             style: 'bar',
-                             title: 'Mean Scores vs Thresholds',
-                             useDescr: true,
-                             yaxis: 'Score',
-                             excludeZero: false,
-                             keepRecords: true
-                        
-                        // Plot 2: Number of Tests per Metric
-                        plot csvFileName: 'plot_test_counts.csv',
-                             csvSeries: [[
-                                 file: 'reports/plot_test_counts.csv',
-                                 label: 'Number of Tests',
-                                 inclusionFlag: 'INCLUDE_BY_STRING',
-                                 exclusionValues: '',
-                                 url: 'reports/plot_test_counts.csv',
-                                 displayTableFlag: true
-                             ]],
-                             group: 'Agentic Metrics',
-                             numBuilds: '30',
-                             style: 'bar',
-                             title: 'Number of Tests per Metric',
-                             useDescr: true,
-                             yaxis: 'Number of Tests',
-                             excludeZero: false,
-                             keepRecords: true
+                    if (testDir) {
+                        dir(testDir) {
+                            // Find the most recent plot CSV file using Python (cross-platform)
+                            def plotFile = bat(
+                                script: """
+                                    @echo off
+                                    python -c "import glob, os; files = sorted(glob.glob('reports/multiple_agentic_metrics_summary_plot_*.csv'), key=os.path.getmtime, reverse=True); print(files[0] if files else '')"
+                                """,
+                                returnStdout: true
+                            ).trim()
+                            
+                            if (plotFile) {
+                                echo "Found plot CSV file: ${plotFile}"
+                                def relativePlotFile = plotFile.replace('\\\\', '/')
+                                // Use relative path from current directory context
+                                if (relativePlotFile.contains('reports/')) {
+                                    relativePlotFile = relativePlotFile.substring(relativePlotFile.indexOf('reports/'))
+                                }
+                                echo "Using plot file: ${relativePlotFile}"
+                                
+                                generatePlots(relativePlotFile)
+                            } else {
+                                echo "No plot CSV file found (multiple_agentic_metrics_summary_plot_*.csv) to generate plots from"
+                            }
+                        }
                     } else {
-                        echo "No summary file found to generate plots from"
+                        // Find the most recent plot CSV file using Python (cross-platform)
+                        def plotFile = bat(
+                            script: """
+                                @echo off
+                                python -c "import glob, os; files = sorted(glob.glob('reports/multiple_agentic_metrics_summary_plot_*.csv'), key=os.path.getmtime, reverse=True); print(files[0] if files else '')"
+                            """,
+                            returnStdout: true
+                        ).trim()
+                        
+                        if (plotFile) {
+                            echo "Found plot CSV file: ${plotFile}"
+                            def relativePlotFile = plotFile.replace('\\\\', '/')
+                            if (relativePlotFile.contains('reports/')) {
+                                relativePlotFile = relativePlotFile.substring(relativePlotFile.indexOf('reports/'))
+                            }
+                            echo "Using plot file: ${relativePlotFile}"
+                            
+                            generatePlots(relativePlotFile)
+                        } else {
+                            echo "No plot CSV file found (multiple_agentic_metrics_summary_plot_*.csv) to generate plots from"
+                        }
                     }
                 }
             }
         }
+        
+// Helper function to generate plots from the transformed CSV
+def generatePlots(relativePlotFile) {
+    if (!relativePlotFile) {
+        return
+    }
+    
+    // Plot 1: Mean Scores Over Time
+    plot csvFileName: 'agentic_metrics_plot.csv',
+         csvSeries: [[
+             file: relativePlotFile,
+             label: 'Task_Completion_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Step_Efficiency_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Adherence_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Quality_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ]],
+         group: 'Agentic Metrics',
+         numBuilds: '30',
+         style: 'line',
+         title: 'Agentic Metrics: Mean Scores Over Time',
+         useDescr: true,
+         yaxis: 'Score',
+         excludeZero: false,
+         keepRecords: true
+    
+    // Plot 2: Mean Scores vs Thresholds
+    plot csvFileName: 'agentic_thresholds_plot.csv',
+         csvSeries: [[
+             file: relativePlotFile,
+             label: 'Task_Completion_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Task_Completion_threshold',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Step_Efficiency_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Step_Efficiency_threshold',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Adherence_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Adherence_threshold',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Quality_mean',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Quality_threshold',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ]],
+         group: 'Agentic Metrics',
+         numBuilds: '30',
+         style: 'line',
+         title: 'Agentic Metrics: Mean Scores vs Thresholds',
+         useDescr: true,
+         yaxis: 'Score',
+         excludeZero: false,
+         keepRecords: true
+    
+    // Plot 3: Number of Tests Over Time
+    plot csvFileName: 'agentic_tests_count_plot.csv',
+         csvSeries: [[
+             file: relativePlotFile,
+             label: 'Task_Completion_tests',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Step_Efficiency_tests',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Adherence_tests',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Quality_tests',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ]],
+         group: 'Agentic Metrics',
+         numBuilds: '30',
+         style: 'line',
+         title: 'Agentic Metrics: Number of Tests Over Time',
+         useDescr: true,
+         yaxis: 'Number of Tests',
+         excludeZero: false,
+         keepRecords: true
+    
+    // Plot 4: Pass Rate Over Time
+    plot csvFileName: 'agentic_pass_rate_plot.csv',
+         csvSeries: [[
+             file: relativePlotFile,
+             label: 'Task_Completion_pass_rate',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Step_Efficiency_pass_rate',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Adherence_pass_rate',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ], [
+             file: relativePlotFile,
+             label: 'Plan_Quality_pass_rate',
+             inclusionFlag: 'INCLUDE_BY_STRING',
+             exclusionValues: '',
+             url: relativePlotFile,
+             displayTableFlag: true
+         ]],
+         group: 'Agentic Metrics',
+         numBuilds: '30',
+         style: 'line',
+         title: 'Agentic Metrics: Pass Rate Over Time',
+         useDescr: true,
+         yaxis: 'Pass Rate (%)',
+         excludeZero: false,
+         keepRecords: true
+}
+
         
         stage('Archive Artifacts') {
             when {
@@ -551,11 +734,17 @@ def getTestCommand(testType) {
 
 // Helper function to get virtual environment path based on test type
 def getVenvPath(testType) {
-    if (testType == 'security' || testType == 'all') {
+    // Security tests use Garak venv
+    if (testType == 'security') {
         return env.VENV_GARAK_PATH
-    } else if (testType == 'safety' || testType == 'all') {
+    }
+    // Safety tests use Giskard venv
+    else if (testType == 'safety') {
         return env.VENV_GISKARD_PATH
-    } else {
+    }
+    // For 'all' tests, default to main venv (individual test commands handle their own venvs)
+    // All other test types (agentic, bias, rag, etc.) use main venv
+    else {
         return env.VENV_PATH
     }
 }
