@@ -539,13 +539,16 @@ def test_multiple_agentic_metrics(thresholds):
         )
         pytest.fail(failure_summary)
     
-    # Assert individual test case failures at the end (if any)
+    # Log individual test case failures (for reporting only - they don't cause test failure)
+    # The test ONLY fails if metric averages are below mean thresholds (checked above)
     if failures:
         failure_message = (
-            f"\n\nFound {len(failures)} individual test case failure(s):\n" + 
+            f"\n\n⚠️  Found {len(failures)} individual test case failure(s) (logged for reference, not causing test failure):\n" + 
             "\n".join(f"  - {f}" for f in failures[:50])  # Show first 50 failures
         )
         if len(failures) > 50:
             failure_message += f"\n  ... and {len(failures) - 50} more failures"
-        #pytest.fail(failure_message)
+        print(failure_message)
+        # NOTE: Individual failures are logged but do NOT cause test failure
+        # The test only fails when metric average < threshold mean (see check above at line 535-540)
 
