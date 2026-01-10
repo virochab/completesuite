@@ -343,6 +343,48 @@ pipeline {
                 }
             }
         }
+        
+        stage('Archive Reports') {
+            steps {
+                script {
+                    // Use catchError to continue even if archiving fails
+                    catchError(buildResult: null, stageResult: null) {
+                        // Determine the working directory
+                        def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
+                        
+                        if (testDir) {
+                            dir(testDir) {
+                                bat """
+                                    @echo off
+                                    call "${VENV_PATH}\\Scripts\\activate.bat"
+                                    echo Creating archivereports directory if it doesn't exist...
+                                    if not exist "archivereports" mkdir archivereports
+                                    
+                                    echo Moving files from reports to archivereports...
+                                    python -c "import shutil, os; src='reports'; dst='archivereports'; [shutil.move(os.path.join(src, f), os.path.join(dst, f)) for f in os.listdir(src) if os.path.exists(os.path.join(src, f))]; print('Moved files from reports to archivereports')" 2>&1 || echo Warning: Could not move files, reports directory may be empty or non-existent
+                                    
+                                    echo Cleaning up reports directory...
+                                    python -c "import os, shutil; d='reports'; [shutil.rmtree(os.path.join(d, f)) if os.path.isdir(os.path.join(d, f)) else os.remove(os.path.join(d, f)) for f in os.listdir(d) if os.path.exists(os.path.join(d, f))]; print('Cleaned reports directory')" 2>&1 || echo Warning: Could not clean reports directory
+                                """
+                            }
+                        } else {
+                            bat """
+                                @echo off
+                                call "${VENV_PATH}\\Scripts\\activate.bat"
+                                echo Creating archivereports directory if it doesn't exist...
+                                if not exist "archivereports" mkdir archivereports
+                                
+                                echo Moving files from reports to archivereports...
+                                python -c "import shutil, os; src='reports'; dst='archivereports'; [shutil.move(os.path.join(src, f), os.path.join(dst, f)) for f in os.listdir(src) if os.path.exists(os.path.join(src, f))]; print('Moved files from reports to archivereports')" 2>&1 || echo Warning: Could not move files, reports directory may be empty or non-existent
+                                
+                                echo Cleaning up reports directory...
+                                python -c "import os, shutil; d='reports'; [shutil.rmtree(os.path.join(d, f)) if os.path.isdir(os.path.join(d, f)) else os.remove(os.path.join(d, f)) for f in os.listdir(d) if os.path.exists(os.path.join(d, f))]; print('Cleaned reports directory')" 2>&1 || echo Warning: Could not clean reports directory
+                            """
+                        }
+                    }
+                }
+            }
+        }
     }
     
     post {
