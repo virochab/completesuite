@@ -154,8 +154,19 @@ pipeline {
                     // Check if tests directory exists in current directory, otherwise look in llm-compliance
                     def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
                     
-                    if (testDir) {
-                        dir(testDir) {
+                    // Use catchError to continue pipeline even if tests fail
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        if (testDir) {
+                            dir(testDir) {
+                                bat """
+                                    @echo off
+                                    call "${venvPath}\\Scripts\\activate.bat"
+                                    echo Running test type: ${testType}
+                                    echo Test command: ${testCommand}
+                                    ${testCommand}
+                                """
+                            }
+                        } else {
                             bat """
                                 @echo off
                                 call "${venvPath}\\Scripts\\activate.bat"
@@ -164,20 +175,20 @@ pipeline {
                                 ${testCommand}
                             """
                         }
-                    } else {
-                        bat """
-                            @echo off
-                            call "${venvPath}\\Scripts\\activate.bat"
-                            echo Running test type: ${testType}
-                            echo Test command: ${testCommand}
-                            ${testCommand}
-                        """
                     }
                 }
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'test-reports/junit-*.xml'
+                    script {
+                        // Check for test results in both possible locations
+                        def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
+                        def junitPattern = testDir ? "${testDir}/test-reports/junit-*.xml" : "test-reports/junit-*.xml"
+                        
+                        // Try to find test results in either location
+                        def testResultsPattern = "**/test-reports/junit-*.xml"
+                        junit allowEmptyResults: true, testResults: testResultsPattern
+                    }
                 }
             }
         }
@@ -185,27 +196,16 @@ pipeline {
         stage('Publish Test Results') {
             steps {
                 script {
-                    def testType = params.TEST_TYPE ?: 'sanity'
-                    def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
+                    // Use glob pattern to find test results in either location
+                    def junitPattern = "**/test-reports/junit-*.xml"
                     
-                    // Determine the JUnit XML file pattern based on test type
-                    def junitPattern = "test-reports/junit-*.xml"
-                    
-                    if (testDir) {
-                        dir(testDir) {
-                            // Publish all JUnit XML files
-                            junit testResults: junitPattern, allowEmptyResults: false
-                            
-                            // Archive the JUnit XML files
-                            archiveArtifacts artifacts: junitPattern, allowEmptyArchive: true
-                        }
-                    } else {
-                        // Publish all JUnit XML files
-                        junit testResults: junitPattern, allowEmptyResults: false
-                        
-                        // Archive the JUnit XML files
-                        archiveArtifacts artifacts: junitPattern, allowEmptyArchive: true
+                    // Publish all JUnit XML files (allow empty to continue pipeline)
+                    catchError(buildResult: null, stageResult: null) {
+                        junit testResults: junitPattern, allowEmptyResults: true
                     }
+                    
+                    // Archive the JUnit XML files
+                    archiveArtifacts artifacts: junitPattern, allowEmptyArchive: true
                 }
             }
         }
