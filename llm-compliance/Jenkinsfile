@@ -330,15 +330,36 @@ pipeline {
                 script {
                     // Use catchError to continue even if archiving fails
                     catchError(buildResult: null, stageResult: null) {
-                        archiveArtifacts artifacts: 'test-reports/**', fingerprint: true, allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'evidence/**', fingerprint: true, allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'reports/**/*.csv', allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'reports/**/*.json', allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'reports/**/*.html', allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'reports/**/*.jsonl', allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'reports/**/*.png', allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'reports/metrics_history.csv', allowEmptyArchive: true
-                        archiveArtifacts artifacts: 'reports/metrics_summary.json', allowEmptyArchive: true
+                        // Determine the working directory where files are located
+                        def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
+                        
+                        if (testDir) {
+                            // Files are in llm-compliance subdirectory
+                            dir(testDir) {
+                                archiveArtifacts artifacts: 'test-reports/**', fingerprint: true, allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'evidence/**', fingerprint: true, allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'reports/**/*.csv', allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'reports/**/*.json', allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'reports/**/*.html', allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'reports/**/*.jsonl', allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'reports/**/*.png', allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'reports/metrics_history.csv', allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'reports/metrics_summary.json', allowEmptyArchive: true
+                                archiveArtifacts artifacts: 'archivereports/**', fingerprint: true, allowEmptyArchive: true
+                            }
+                        } else {
+                            // Files are in workspace root
+                            archiveArtifacts artifacts: 'test-reports/**', fingerprint: true, allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'evidence/**', fingerprint: true, allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'reports/**/*.csv', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'reports/**/*.json', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'reports/**/*.html', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'reports/**/*.jsonl', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'reports/**/*.png', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'reports/metrics_history.csv', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'reports/metrics_summary.json', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'archivereports/**', fingerprint: true, allowEmptyArchive: true
+                        }
                     }
                 }
             }
