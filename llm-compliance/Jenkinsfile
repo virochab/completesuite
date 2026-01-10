@@ -204,33 +204,16 @@ pipeline {
             }
         }
         
-        stage('Generate Reports') {
-            when {
-                expression { params.GENERATE_REPORTS == true }
-            }
-            steps {
-                script {
-                    bat """
-                        @echo off
-                        call "${VENV_PATH}\\Scripts\\activate.bat"
-                        echo Generating metrics summary...
-                        python -c "from utils.metricsHistoryTracker import MetricsHistoryTracker; tracker = MetricsHistoryTracker(); tracker.generate_summary_report()" || echo Warning: Could not generate metrics summary
-                        
-                        echo Building evidence bundle...
-                        python scripts/build_evidence_bundle.py || echo Warning: Could not build evidence bundle
-                    """
-                }
-            }
-        }
-        
         stage('Generate Plots') {
             when {
                 expression { params.GENERATE_REPORTS == true }
             }
             steps {
                 script {
-                    // Determine the working directory for finding the plot CSV file
-                    def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
+                    // Use catchError to continue pipeline even if plots fail
+                    catchError(buildResult: null, stageResult: null) {
+                        // Determine the working directory for finding the plot CSV file
+                        def testDir = fileExists("tests/conftest.py") ? "" : "llm-compliance"
                     
                     if (testDir) {
                         dir(testDir) {
@@ -334,6 +317,7 @@ pipeline {
                             echo "No plot CSV file found (multiple_agentic_metrics_summary_plot_*.csv) to generate plots from"
                         }
                     }
+                    }
                 }
             }
         }
@@ -344,15 +328,18 @@ pipeline {
             }
             steps {
                 script {
-                    archiveArtifacts artifacts: 'test-reports/**', fingerprint: true, allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'evidence/**', fingerprint: true, allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'reports/**/*.csv', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'reports/**/*.json', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'reports/**/*.html', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'reports/**/*.jsonl', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'reports/**/*.png', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'reports/metrics_history.csv', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'reports/metrics_summary.json', allowEmptyArchive: true
+                    // Use catchError to continue even if archiving fails
+                    catchError(buildResult: null, stageResult: null) {
+                        archiveArtifacts artifacts: 'test-reports/**', fingerprint: true, allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'evidence/**', fingerprint: true, allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'reports/**/*.csv', allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'reports/**/*.json', allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'reports/**/*.html', allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'reports/**/*.jsonl', allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'reports/**/*.png', allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'reports/metrics_history.csv', allowEmptyArchive: true
+                        archiveArtifacts artifacts: 'reports/metrics_summary.json', allowEmptyArchive: true
+                    }
                 }
             }
         }
